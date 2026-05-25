@@ -8,6 +8,8 @@
 
 **Tech Stack:** React 18, Vite 6, TypeScript, Tailwind CSS, lucide-react, Vitest for pure function tests, localStorage for persistence.
 
+**Document status:** This file is the implementation plan and historical execution record. The current product contract is maintained in the MVP design spec and QA notes. Early embedded snippets may show intermediate code examples, but the current implementation follows the 2026-05-25 documentation alignment updates.
+
 ---
 
 ## Mandatory Visual And Motion Contract
@@ -25,8 +27,8 @@ Use these existing style rules throughout implementation:
 - Keep role colors from data:
   - `color`, `glowColor`, and `accentColor` drive selected states, active tabs, update badges, progress, and skill highlights.
 - Keep typography:
-  - Brand and major headings use `fontFamily: "'Cinzel', serif"`.
-  - Descriptive copy uses `fontFamily: "'Crimson Pro', serif"`.
+  - Brand and major headings use `var(--font-display)` backed by `Noto Serif SC` / `Source Han Serif SC`.
+  - Descriptive copy, inputs, and controls use `var(--font-ui)` backed by `Noto Sans SC` / `PingFang SC`.
   - Status labels, tier labels, install commands, counters, and metadata use `font-mono` / `JetBrains Mono`.
 - Keep motion behavior:
   - Skill node selected glow uses SVG `<animate>` pulse as in the current `SkillNode`.
@@ -2181,7 +2183,7 @@ Expected:
 
 - Overall app remains dark, using the forge palette from the original code.
 - Role colors drive active states and highlights.
-- Major headings still use `Cinzel`; body copy still uses `Crimson Pro`; metadata and commands use monospace.
+- Major headings use the current `var(--font-display)` Chinese serif stack; body copy uses `var(--font-ui)`; metadata and commands use monospace.
 - Skill tree is still visually recognizable as the original skill tree.
 - Selected nodes pulse; available nodes pulse; connector activation remains visible.
 - New update badges sit on top of the existing node style without flattening the tree into plain cards.

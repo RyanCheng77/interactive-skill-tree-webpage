@@ -1,12 +1,12 @@
 # Interactive Skill Tree Webpage
 
-Interactive Skill Tree Webpage is a React and Vite prototype for exploring product-development roles, workflow stages, and recommended skills/tools. It helps a project lead move from a loose product goal to a structured collaboration path that can be reviewed, exported, and reused.
+Interactive Skill Tree Webpage is a React and Vite prototype for exploring product-development roles, workflow stages, and recommended skills/tools. It helps a project lead move from a loose product problem, such as “不知道用什么 Skill？”, to a structured collaboration path that can be reviewed, exported, and reused.
 
 The current MVP focuses on local, single-user exploration. It does not require a backend, account system, or live AI service.
 
 ## Features
 
-- Goal-first planning view for generating a structured product-development path.
+- Goal-first planning view for recommending suitable skills/tools and generating a structured product-development path.
 - Process view for browsing stages, role responsibilities, suggested skills/tools, and expected outputs.
 - Role view with an interactive skill tree, prerequisites, update states, and skill details.
 - Local persistence through `localStorage`.
@@ -51,6 +51,7 @@ pnpm build
 
 - [Project overview](docs/project-overview.md)
 - [MVP design spec](docs/superpowers/specs/2026-05-22-product-rd-workbench-mvp-design.md)
+- [MVP implementation plan](docs/superpowers/plans/2026-05-22-product-rd-workbench-mvp.md)
 - [QA notes](docs/superpowers/qa/2026-05-23-product-rd-workbench-mvp-qa.md)
 
 ## Attribution
