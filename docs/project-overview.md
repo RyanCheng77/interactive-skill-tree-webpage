@@ -46,7 +46,13 @@ Before publishing a release:
 
 ## Roadmap Ideas
 
-- Replace rule-based local planning with configurable AI-backed generation.
-- Add editable templates for roles, stages, and skills.
-- Add import/export for full workbench configuration.
-- Add optional backend persistence for teams.
+The next planned phase is v0.2 local skill graph. It replaces static demo skill data with locally scanned `SKILL.md` metadata and uses deterministic rules to organize skills by role, workflow stage, and learning depth. AI planning is intentionally deferred until the local graph is stable.
+
+See [Roadmap](roadmap.md) and [v0.2 local skill graph plan](superpowers/plans/2026-05-25-local-skill-graph.md).
+
+Later candidates:
+
+- Add editable skill classification and skill creation flow.
+- Add AI goal planning on top of the local skill graph.
+- Add backend plan history, progress, and feedback persistence.
+- Add team spaces, permissions, and cloud deployment.

@@ -49,9 +49,15 @@ pnpm build
 
 ## Project Documentation
 
+- [Current Codex goal](docs/current-goal.md)
 - [Project overview](docs/project-overview.md)
+- [Roadmap](docs/roadmap.md)
 - [MVP design spec](docs/superpowers/specs/2026-05-22-product-rd-workbench-mvp-design.md)
 - [MVP implementation plan](docs/superpowers/plans/2026-05-22-product-rd-workbench-mvp.md)
+- [v0.2 local skill graph plan](docs/superpowers/plans/2026-05-25-local-skill-graph.md)
+- [v0.2 local skill graph + AI planner](docs/superpowers/plans/2026-05-25-local-skill-graph-ai-planner.md)
+- [v0.2 AI + backend closed-loop plan](docs/superpowers/plans/2026-05-25-ai-backend-closed-loop.md)
+- [v0.2 local plan workspace plan](docs/superpowers/plans/2026-05-25-local-plan-workspace.md)
 - [QA notes](docs/superpowers/qa/2026-05-23-product-rd-workbench-mvp-qa.md)
 
 ## Attribution
