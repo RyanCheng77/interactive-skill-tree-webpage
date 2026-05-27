@@ -89,3 +89,11 @@ export interface AppStateSnapshot {
   seenSkillIds: string[];
   generatedPlan?: GeneratedPlan;
 }
+
+export interface LocalGraphState {
+  loading: boolean;
+  available: boolean;
+  warnings: string[];
+}
+
+export type { ClassifiedSkill, SkillClassification, SkillDepth, LocalSkill, SkillRecommendation } from "./lib/apiClient";

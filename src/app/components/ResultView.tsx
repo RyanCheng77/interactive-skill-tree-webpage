@@ -1,4 +1,5 @@
 import { Download, FileJson, RefreshCw } from "lucide-react";
+import type { ClassifiedSkill, SkillRecommendation } from "../lib/apiClient";
 import type { GeneratedPlan } from "../types";
 
 interface ResultViewProps {
@@ -10,6 +11,8 @@ interface ResultViewProps {
   onExportMarkdown: () => void;
   onExportJson: () => void;
   onOpenProcess: () => void;
+  recommendations?: SkillRecommendation[];
+  classifiedSkills?: ClassifiedSkill[];
 }
 
 export function ResultView({
@@ -21,9 +24,22 @@ export function ResultView({
   onExportMarkdown,
   onExportJson,
   onOpenProcess,
+  recommendations,
+  classifiedSkills,
 }: ResultViewProps) {
   const activeStage = plan.stages.find((stage) => stage.id === activeStageId) ?? plan.stages[0];
   const nextStage = plan.stages.find((stage) => stage.id === activeStage.nextStageId);
+  
+  const recommendedSkills = recommendations?.length > 0
+    ? recommendations
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4)
+        .map((rec) => {
+          const skill = classifiedSkills?.find((cs) => cs.skill.id === rec.skillId);
+          return { ...rec, skill };
+        })
+        .filter((item) => item.skill)
+    : [];
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -148,6 +164,32 @@ export function ResultView({
                 ))}
               </div>
             </section>
+
+            {recommendedSkills.length > 0 && (
+              <section className="mt-5 rounded-lg border p-5" style={{ background: "#0f1a15", borderColor: "#2a5a3a" }}>
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#4db885" }} />
+                  <span className="text-xs font-mono tracking-[0.2em]" style={{ color: "#4db885" }}>推荐本地 Skill</span>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {recommendedSkills.map((item) => (
+                    <div key={item.skillId} className="rounded-lg border p-3" style={{ background: "#0d0d16", borderColor: "#2a5a3a" }}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold" style={{ color: "#e0d0b8", fontFamily: "var(--font-display)" }}>
+                          {item.skill?.skill.name}
+                        </span>
+                        <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#0f1a15", color: "#4db885" }}>
+                          {Math.round(item.score * 100)}%
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs leading-5" style={{ color: "#a09080" }}>
+                        {item.skill?.skill.description || item.reason}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </article>
         </div>
       </div>

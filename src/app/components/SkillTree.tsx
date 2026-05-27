@@ -136,6 +136,9 @@ function SkillNode({
           </text>
         </>
       )}
+      {(skill as Record<string, unknown>).isLocal && (
+        <circle cx={cx - r + 5} cy={cy - r + 5} r={4} fill="#4db885" stroke="#0a0a10" strokeWidth="1" />
+      )}
     </g>
   );
 }
@@ -186,6 +189,7 @@ export function SkillTree({ role, selectedSkillId, onSelectSkill }: SkillTreePro
             { icon: <CheckCircle2 size={11} />, label: "已解锁", color: role.color },
             { icon: <Star size={11} />, label: "可解锁", color: role.accentColor },
             { icon: <Lock size={11} />, label: "未解锁", color: "#2e2e40" },
+            { icon: <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#4db885" }} />, label: "本地 Skill", color: "#4db885" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-1.5" style={{ color: item.color }}>
               {item.icon}

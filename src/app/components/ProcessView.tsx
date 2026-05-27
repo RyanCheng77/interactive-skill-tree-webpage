@@ -1,14 +1,27 @@
+import { useMemo } from "react";
+import type { ClassifiedSkill } from "../lib/apiClient";
 import type { ProcessStage } from "../types";
 
 interface ProcessViewProps {
   stages: ProcessStage[];
   activeStageId: string;
   onStageChange: (stageId: string) => void;
+  classifiedSkills?: ClassifiedSkill[];
+  graphAvailable?: boolean;
 }
 
-export function ProcessView({ stages, activeStageId, onStageChange }: ProcessViewProps) {
+export function ProcessView({ stages, activeStageId, onStageChange, classifiedSkills, graphAvailable }: ProcessViewProps) {
   const activeStage = stages.find((stage) => stage.id === activeStageId) ?? stages[0];
   const nextStage = stages.find((stage) => stage.id === activeStage.nextStageId);
+
+  const stageSkills = useMemo(() => {
+    if (!graphAvailable || !classifiedSkills) return [];
+
+    return classifiedSkills
+      .filter((cs) => cs.classification.stageIds.includes(activeStage.id))
+      .sort((a, b) => b.classification.confidence - a.classification.confidence)
+      .slice(0, 6);
+  }, [graphAvailable, classifiedSkills, activeStage.id]);
 
   return (
     <section className="mx-auto max-w-7xl">
@@ -17,9 +30,16 @@ export function ProcessView({ stages, activeStageId, onStageChange }: ProcessVie
           <p className="text-xs font-mono tracking-[0.28em]" style={{ color: "#c9963a" }}>按流程</p>
           <h2 className="mt-2 text-3xl font-bold sm:text-4xl" style={{ fontFamily: "var(--font-display)", color: "#e8dcc8" }}>
             产研流程工作台
+            {graphAvailable && (
+              <span className="ml-3 inline-block rounded-full px-2.5 py-1 text-xs font-mono align-middle" style={{ background: "#0f1a15", color: "#4db885", border: "1px solid #2a5a3a" }}>
+                本地 Skill 图谱
+              </span>
+            )}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6" style={{ color: "#a09080" }}>
-            先选择流程阶段，再查看该阶段的角色任务、阶段产物和建议 skill/tool。
+            {graphAvailable
+              ? "已加载本地 Skill 数据。选择流程阶段，查看基于真实 Skill 分类的阶段推荐。"
+              : "先选择流程阶段，再查看该阶段的角色任务、阶段产物和建议 skill/tool。"}
           </p>
         </div>
         <button className="rounded-lg px-5 py-3 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95" style={{ background: "#111827", color: "#e8dcc8", border: "1px solid #c9963a55", fontFamily: "var(--font-display)" }}>
@@ -96,6 +116,27 @@ export function ProcessView({ stages, activeStageId, onStageChange }: ProcessVie
                   </span>
                 ))}
               </div>
+
+              {stageSkills.length > 0 && (
+                <>
+                  <p className="mb-3 text-xs font-mono tracking-[0.2em]" style={{ color: "#4db885" }}>本地 Skill 推荐</p>
+                  <div className="mb-5 flex flex-col gap-2">
+                    {stageSkills.map((cs) => (
+                      <div key={cs.skill.id} className="rounded-lg border p-3" style={{ background: "#0d0d16", borderColor: "#2a5a3a" }}>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#4db885" }} />
+                          <span className="text-sm font-bold" style={{ color: "#e0d0b8", fontFamily: "var(--font-display)" }}>{cs.skill.name}</span>
+                          <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#0f1a15", color: "#4db885" }}>
+                            {Math.round(cs.classification.confidence * 100)}%
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs leading-5" style={{ color: "#a09080" }}>{cs.skill.description}</p>
+                        <p className="mt-1 text-xs font-mono" style={{ color: "#3a5a48" }}>{cs.classification.reason}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               <p className="mb-3 text-xs font-mono tracking-[0.2em]" style={{ color: "#4a4a60" }}>阶段产物</p>
               <div className="flex flex-col gap-2">

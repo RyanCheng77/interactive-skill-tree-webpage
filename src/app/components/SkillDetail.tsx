@@ -1,5 +1,6 @@
-import { Check, Copy, ExternalLink, Lock, Terminal } from "lucide-react";
+import { Check, Copy, ExternalLink, FileText, Lock, Terminal } from "lucide-react";
 import { useState } from "react";
+import { getLocalSkillMeta } from "../lib/graphTransform";
 import type { Role, Skill } from "../types";
 import { TIER_LABELS } from "../data/workbenchData";
 
@@ -92,6 +93,24 @@ export function SkillDetail({ skill, role, unlocked, onUnlock, onMarkSeen }: Ski
           <div className="rounded-lg border p-3 text-sm" style={{ background: "rgba(201,150,58,0.08)", borderColor: "#c9963a35", color: "#f0c06a" }}>
             <span className="font-mono text-xs">更新摘要</span>
             <p className="mt-1 leading-6" style={{ color: "#c8bca8" }}>{skill.changeSummary}</p>
+          </div>
+        )}
+
+        {getLocalSkillMeta(skill).isLocal && (
+          <div className="rounded-lg border p-3" style={{ background: "#0f1a15", borderColor: "#2a5a3a" }}>
+            <div className="mb-2 flex items-center gap-2">
+              <FileText size={12} style={{ color: "#4db885" }} />
+              <span className="text-xs font-mono" style={{ color: "#4db885" }}>本地 Skill</span>
+              <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#0f1a15", color: "#4db885" }}>
+                {Math.round(getLocalSkillMeta(skill).confidence * 100)}%
+              </span>
+            </div>
+            <p className="text-xs font-mono leading-5" style={{ color: "#3a5a48" }}>
+              路径：{getLocalSkillMeta(skill).localPath}
+            </p>
+            <p className="mt-1 text-xs font-mono leading-5" style={{ color: "#3a5a48" }}>
+              {getLocalSkillMeta(skill).classificationReason}
+            </p>
           </div>
         )}
 

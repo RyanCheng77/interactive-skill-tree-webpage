@@ -16,6 +16,7 @@ interface RoleViewProps {
   onSelectSkill: (skillId: string) => void;
   onUnlockSkill: (skillId: string) => void;
   onMarkSeen: (skillId: string) => void;
+  graphAvailable?: boolean;
 }
 
 const ROLE_ICONS: Record<Role["icon"], ReactNode> = {
@@ -39,6 +40,7 @@ export function RoleView({
   onSelectSkill,
   onUnlockSkill,
   onMarkSeen,
+  graphAvailable,
 }: RoleViewProps) {
   const activeRole = roles.find((role) => role.id === activeRoleId) ?? roles[0];
   const roleTask = activeStage.roleTasks.find((task) => task.roleId === activeRole.id);
@@ -51,9 +53,16 @@ export function RoleView({
           <p className="text-xs font-mono tracking-[0.28em]" style={{ color: activeRole.color }}>按角色</p>
           <h2 className="mt-2 text-3xl font-bold sm:text-4xl" style={{ fontFamily: "var(--font-display)", color: "#e8dcc8" }}>
             角色工作台
+            {graphAvailable && (
+              <span className="ml-3 inline-block rounded-full px-2.5 py-1 text-xs font-mono align-middle" style={{ background: "#0f1a15", color: "#4db885", border: "1px solid #2a5a3a" }}>
+                本地 Skill 图谱
+              </span>
+            )}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6" style={{ color: "#a09080" }}>
-            选择产研角色，查看当前阶段任务、建议 skill/tool、关键产物和完整技能树。
+            {graphAvailable
+              ? "已加载本地 Skill 数据。选择产研角色，查看基于真实 Skill 分类的角色技能树。"
+              : "选择产研角色，查看当前阶段任务、建议 skill/tool、关键产物和完整技能树。"}
           </p>
         </div>
         <button className="rounded-lg px-5 py-3 text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-95" style={{ background: "#111827", color: "#e8dcc8", border: `1px solid ${activeRole.color}55`, fontFamily: "var(--font-display)" }}>

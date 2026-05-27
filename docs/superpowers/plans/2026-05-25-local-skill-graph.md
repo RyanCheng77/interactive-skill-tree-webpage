@@ -44,6 +44,10 @@ Path handling requirements:
 - Skip missing or unreadable roots with warnings.
 - Work when a device has many skills, a few skills, or no skill roots yet.
 
+Current project-local fixture:
+
+- `skills/oss-pr-review-response/SKILL.md` is the first real project skill and should be included when validating `./skills` discovery.
+
 ## File Structure
 
 - Modify: `package.json`
@@ -348,27 +352,27 @@ Expected: PASS. No AI or network mocks needed.
 - Modify: `src/app/components/SkillTree.tsx`
 - Modify: `src/app/components/SkillDetail.tsx`
 
-- [ ] **Step 1: Add frontend types and API client**
+- [x] **Step 1: Add frontend types and API client**
 
 Add local skill graph types and client functions for health, catalog, classified skills, and recommendations.
 
-- [ ] **Step 2: Load graph on startup**
+- [x] **Step 2: Load graph on startup**
 
 Load classified skills from backend. If backend is unavailable, retain current static data fallback and show a compact warning.
 
-- [ ] **Step 3: Render role graph**
+- [x] **Step 3: Render role graph**
 
 Use classified local skills grouped by role. Map depth to skill tree tiers.
 
-- [ ] **Step 4: Render process recommendations**
+- [x] **Step 4: Render process recommendations**
 
 Use classified local skills grouped by stage. Keep existing process tasks and deliverables.
 
-- [ ] **Step 5: Render local skill details**
+- [x] **Step 5: Render local skill details**
 
 Show path, root, description, tags, depth, confidence, and classification reason.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 Run:
 
@@ -377,7 +381,7 @@ pnpm test:run
 pnpm build
 ```
 
-Expected: PASS.
+Expected: PASS. Actual: PASS (32 tests, build OK).
 
 ## Task 6: Goal View Rule Recommendations
 
@@ -386,19 +390,19 @@ Expected: PASS.
 - Modify: `src/app/components/ResultView.tsx`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Call recommend endpoint**
+- [x] **Step 1: Call recommend endpoint**
 
 When the user submits a goal, call `POST /api/skills/recommend` instead of AI planning.
 
-- [ ] **Step 2: Show recommendation result**
+- [x] **Step 2: Show recommendation result**
 
 Show recommended local skills, matched terms, role/stage grouping, and next suggested stage.
 
-- [ ] **Step 3: Keep existing generated plan fallback**
+- [x] **Step 3: Keep existing generated plan fallback**
 
 If the local API is unavailable, keep the existing rule-based generated plan as fallback.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run:
 
@@ -407,7 +411,7 @@ pnpm test:run
 pnpm build
 ```
 
-Expected: PASS.
+Expected: PASS. Actual: PASS (32 tests, build OK).
 
 ## Task 7: QA And Documentation
 

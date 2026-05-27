@@ -1,4 +1,5 @@
 import { ArrowUp, RefreshCw, Sparkles } from "lucide-react";
+import type { ClassifiedSkill, SkillRecommendation } from "../lib/apiClient";
 import type { GoalTemplate } from "../types";
 
 interface GoalViewProps {
@@ -8,6 +9,10 @@ interface GoalViewProps {
   onTemplatePick: (template: GoalTemplate) => void;
   onNextBatch: () => void;
   onGenerate: () => void;
+  classifiedSkills?: ClassifiedSkill[];
+  recommendations?: SkillRecommendation[];
+  recommending?: boolean;
+  graphAvailable?: boolean;
 }
 
 export function GoalView({
@@ -17,7 +22,21 @@ export function GoalView({
   onTemplatePick,
   onNextBatch,
   onGenerate,
+  classifiedSkills,
+  recommendations,
+  recommending,
+  graphAvailable,
 }: GoalViewProps) {
+  const recommendedSkills = recommendations?.length > 0
+    ? recommendations
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map((rec) => {
+          const skill = classifiedSkills?.find((cs) => cs.skill.id === rec.skillId);
+          return { ...rec, skill };
+        })
+        .filter((item) => item.skill)
+    : [];
   return (
     <section className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl flex-col justify-center py-6 lg:py-10">
       <div className="mb-8 text-center lg:mb-10">
@@ -55,14 +74,51 @@ export function GoalView({
           </div>
           <button
             onClick={onGenerate}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all duration-200 hover:brightness-110 active:scale-95"
+            disabled={recommending}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all duration-200 hover:brightness-110 active:scale-95 disabled:opacity-50"
             style={{ background: "#c9963a", color: "#0a0a10", boxShadow: "0 4px 18px rgba(201,150,58,0.35)" }}
             aria-label="生成"
           >
-            <ArrowUp size={20} />
+            {recommending ? <RefreshCw size={20} className="animate-spin" /> : <ArrowUp size={20} />}
           </button>
         </div>
       </div>
+
+      {recommendedSkills.length > 0 && (
+        <div className="mt-6 rounded-lg border p-5" style={{ background: "#0d0d16", borderColor: "#2a5a3a" }}>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#4db885" }} />
+            <span className="text-xs font-mono" style={{ color: "#4db885" }}>本地 Skill 推荐</span>
+            <span className="ml-auto text-xs font-mono" style={{ color: "#3a5a48" }}>基于规则匹配</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {recommendedSkills.map((item) => (
+              <div key={item.skillId} className="rounded-lg border p-3" style={{ background: "#0f1a15", borderColor: "#2a5a3a" }}>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold" style={{ color: "#e0d0b8", fontFamily: "var(--font-display)" }}>
+                    {item.skill?.skill.name}
+                  </span>
+                  <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#0f1a15", color: "#4db885" }}>
+                    {Math.round(item.score * 100)}%
+                  </span>
+                </div>
+                <p className="mt-1 text-xs leading-5" style={{ color: "#a09080" }}>
+                  {item.skill?.skill.description || item.reason}
+                </p>
+                {item.matchedTerms.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {item.matchedTerms.slice(0, 3).map((term) => (
+                      <span key={term} className="rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#1a3a2a", color: "#6db8a0" }}>
+                        {term}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>

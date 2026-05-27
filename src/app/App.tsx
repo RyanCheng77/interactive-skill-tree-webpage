@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GoalView } from "./components/GoalView";
 import { ProcessView } from "./components/ProcessView";
 import { ResultView } from "./components/ResultView";
@@ -6,10 +6,12 @@ import { RoleView } from "./components/RoleView";
 import { WorkbenchShell } from "./components/WorkbenchShell";
 import { GOAL_TEMPLATES, PROCESS_STAGES, ROLES } from "./data/workbenchData";
 import { exportPlanAsJson, exportPlanAsMarkdown } from "./lib/exportPlan";
+import { classifiedSkillsToRoles } from "./lib/graphTransform";
 import { createGeneratedPlan, getRecommendationBatch } from "./lib/planGeneration";
 import { computeRoleSkills, findSkillById } from "./lib/skillState";
 import { loadSnapshot, saveSnapshot } from "./lib/storage";
-import type { EntryMode, GeneratedPlan, GoalTemplate } from "./types";
+import type { ClassifiedSkill, SkillRecommendation } from "./lib/apiClient";
+import type { EntryMode, GeneratedPlan, GoalTemplate, LocalGraphState } from "./types";
 
 const MODE_TITLES: Record<EntryMode, { eyebrow: string; title: string; description: string }> = {
   goal: {
@@ -40,14 +42,47 @@ export default function App() {
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(initialSnapshot.selectedSkillId);
   const [unlockedSkillIds, setUnlockedSkillIds] = useState<string[]>(initialSnapshot.unlockedSkillIds);
   const [seenSkillIds, setSeenSkillIds] = useState<string[]>(initialSnapshot.seenSkillIds);
+  const [classifiedSkills, setClassifiedSkills] = useState<ClassifiedSkill[]>([]);
+  const [graphState, setGraphState] = useState<LocalGraphState>({ loading: true, available: false, warnings: [] });
+  const [recommendations, setRecommendations] = useState<SkillRecommendation[]>([]);
+  const [recommending, setRecommending] = useState(false);
   const content = MODE_TITLES[activeMode];
   const visibleTemplates = getRecommendationBatch(GOAL_TEMPLATES, recommendationBatch);
   const unlockedSkillIdSet = new Set(unlockedSkillIds);
   const seenSkillIdSet = new Set(seenSkillIds);
-  const roles = ROLES.map((role) => ({
-    ...role,
-    skills: computeRoleSkills(role.skills, unlockedSkillIdSet, seenSkillIdSet),
-  }));
+
+  const loadGraph = useCallback(async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:3001/api/skills/classified");
+
+      if (!response.ok) {
+        setGraphState({ loading: false, available: false, warnings: [] });
+        return;
+      }
+
+      const data = await response.json() as { skills: ClassifiedSkill[]; warnings: string[] };
+      setClassifiedSkills(data.skills);
+      setGraphState({ loading: false, available: true, warnings: data.warnings });
+    } catch {
+      setGraphState({ loading: false, available: false, warnings: [] });
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGraph();
+  }, [loadGraph]);
+
+  const localRoles = useMemo(() => classifiedSkillsToRoles(classifiedSkills), [classifiedSkills]);
+
+  const roles = useMemo(() => {
+    const baseRoles = graphState.available && localRoles.length > 0 ? localRoles : ROLES;
+
+    return baseRoles.map((role) => ({
+      ...role,
+      skills: computeRoleSkills(role.skills, unlockedSkillIdSet, seenSkillIdSet),
+    }));
+  }, [graphState.available, localRoles, unlockedSkillIdSet, seenSkillIdSet]);
+
   const activeRole = roles.find((role) => role.id === activeRoleId) ?? roles[0];
   const activeStage = PROCESS_STAGES.find((stage) => stage.id === activeStageId) ?? PROCESS_STAGES[0];
   const selectedSkill = findSkillById(activeRole.skills, selectedSkillId);
@@ -81,8 +116,28 @@ export default function App() {
     setGoalInput(template.prompt);
   }
 
-  function handleGenerate() {
+  async function handleGenerate() {
     const goal = goalInput.trim() || GOAL_TEMPLATES[0].prompt;
+    
+    if (graphState.available) {
+      setRecommending(true);
+      try {
+        const response = await fetch("http://127.0.0.1:3001/api/skills/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ goal }),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setRecommendations(data.recommendations);
+        }
+      } catch {
+        // 推荐 API 调用失败，继续使用规则生成方案
+      }
+      setRecommending(false);
+    }
+    
     const plan = createGeneratedPlan({ goal, stages: PROCESS_STAGES });
     setGeneratedPlan(plan);
     setActiveStageId(plan.stages[0]?.id ?? "requirements");
@@ -161,6 +216,15 @@ export default function App() {
 
   return (
     <WorkbenchShell activeMode={activeMode} onModeChange={setActiveMode}>
+      {!graphState.loading && !graphState.available && (
+        <div className="mb-4 rounded-lg border px-4 py-2.5" style={{ background: "#0d0d16", borderColor: "#1a1a28" }}>
+          <p className="text-xs font-mono" style={{ color: "#4a4a60" }}>
+            本地 Skill 图谱服务未启动，当前使用演示数据。
+            {graphState.warnings.length > 0 && ` ${graphState.warnings.join(" ")}`}
+          </p>
+        </div>
+      )}
+
       {activeMode === "goal" && !generatedPlan ? (
         <GoalView
           goalInput={goalInput}
@@ -169,6 +233,10 @@ export default function App() {
           onTemplatePick={handleTemplatePick}
           onNextBatch={() => setRecommendationBatch((value) => value + 1)}
           onGenerate={handleGenerate}
+          classifiedSkills={classifiedSkills}
+          recommendations={recommendations}
+          recommending={recommending}
+          graphAvailable={graphState.available}
         />
       ) : activeMode === "goal" && generatedPlan ? (
         <ResultView
@@ -180,9 +248,17 @@ export default function App() {
           onExportMarkdown={() => exportText(exportPlanAsMarkdown(generatedPlan), `${generatedPlan.title}.md`, "text/markdown;charset=utf-8")}
           onExportJson={() => exportText(exportPlanAsJson(generatedPlan), `${generatedPlan.title}.json`, "application/json;charset=utf-8")}
           onOpenProcess={() => setActiveMode("process")}
+          recommendations={recommendations}
+          classifiedSkills={classifiedSkills}
         />
       ) : activeMode === "process" ? (
-        <ProcessView stages={PROCESS_STAGES} activeStageId={activeStageId} onStageChange={setActiveStageId} />
+        <ProcessView
+          stages={PROCESS_STAGES}
+          activeStageId={activeStageId}
+          onStageChange={setActiveStageId}
+          classifiedSkills={classifiedSkills}
+          graphAvailable={graphState.available}
+        />
       ) : activeMode === "role" ? (
         <RoleView
           roles={roles}
@@ -195,6 +271,7 @@ export default function App() {
           onSelectSkill={setSelectedSkillId}
           onUnlockSkill={handleUnlockSkill}
           onMarkSeen={handleMarkSeen}
+          graphAvailable={graphState.available}
         />
       ) : renderPlaceholder()}
     </WorkbenchShell>
