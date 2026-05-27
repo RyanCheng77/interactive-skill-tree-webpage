@@ -7,12 +7,22 @@
 node_modules/
 dist/
 coverage/
+output/
+tmp/
+temp/
 
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+debug-*.txt
+*.db
+*.sqlite
+*.sqlite3
+*.pyc
+__pycache__/
 
 .vite/
 .turbo/
+.playwright-cli/
