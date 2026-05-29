@@ -1,7 +1,7 @@
 # Roadmap
 
-日期：2026-05-25
-状态：MVP 已完成，v0.2 调整为本地 Skill 图谱
+日期：2026-05-27
+状态：MVP 已完成，v0.2 主线仍为本地 Skill 图谱；项目进入产品规划、开源版本、Open Design 上游贡献三轨并行维护
 
 ## 当前进展
 
@@ -18,6 +18,21 @@
 - `pnpm test:run` 通过：4 个测试文件，18 个测试。
 - `pnpm build` 通过：Vite 生产构建成功。
 - 既有 QA 记录提示仍需真实浏览器手动视觉验证，尤其是移动端溢出、下载按钮、技能树动效。
+
+2026-05-27 进展补充：
+
+- 向 `nexu-io/open-design` 贡献 Skills Catalog Tree View，PR 已获得 Looper 审核通过，CI 全绿，等待维护者处理。
+- 贡献内容包括 OD 集成页 Skills tab 的 Tree/List 视图、功能分面筛选、XMind 风格树连线、CLI `od skills tree --json`、i18n 和回归测试。
+- 将开源 PR review 响应流程沉淀为项目 skill：`skills/oss-pr-review-response/SKILL.md`。
+- `./skills` 现在已有真实项目 skill，可作为 v0.2 本地 skill 扫描的首个项目内样例。
+
+## 长期推进方式
+
+项目后续按三条轨道持续推进，详细规则见 `docs/project-operating-model.md`：
+
+- 产品规划轨道：逐步完善本项目，从 v0.2 本地 Skill 图谱推进到 AI 目标规划、Skill 沉淀和团队协作。
+- 开源版本轨道：按版本持续更新到 Git，保持 README、roadmap、QA 和发布说明同步。
+- Open Design 贡献轨道：持续完善已 PR 到 `nexu-io/open-design` 的 Skills Catalog Tree View，跟进 review、CI、合并和后续拆分。
 
 ## 下一阶段：v0.2 本地 Skill 图谱
 
@@ -38,6 +53,10 @@
 - 按目标规则推荐：用户输入目标后，先用关键词匹配和阶段/角色规则推荐本地 skill 组合，不调用 AI。
 - 后端服务层：新增最小 Node API，只负责跨设备本地 skill 发现、读取、分类和状态保存。
 - QA 收口：补端到端 smoke test 和真实浏览器视觉 QA，确认本地 skill 能被读取、分类、展示和用于目标推荐。
+
+### 已具备的本地样例
+
+- `skills/oss-pr-review-response/SKILL.md`：项目内真实 skill，可用于验证 project-local `./skills` root 的发现、frontmatter 解析、正文摘要和规则分类。
 
 ### 本轮暂缓
 
@@ -65,22 +84,28 @@
 
 ## 后续候选阶段
 
-### v0.3 AI 目标规划
+### v0.3 跨平台 Skill 资产管理
+
+在 v0.2 本地 Skill 图谱基础上，新增「管理」工作台，扫描 Codex、Claude、Trae、Cursor 和 `.agents` 相关本地 skill surface。系统按 `name + contentSha256` 聚合标准 `SKILL.md`，展示重复、冲突、只读来源和平台识别状态，生成同步预案，并支持受限的一键安全更新。
+
+安全更新只创建缺失文件，不覆盖已有文件，不写 Trae builtin skills 或 Claude plugin cache，不自动处理冲突；Cursor 作为规则桥接目标时可创建缺失的 `.cursor/rules/*.md` 桥接文件。
+
+### v0.4 AI 目标规划
 
 在本地 Skill 图谱稳定后，再让 AI 基于本地图谱生成调用顺序、每步输入输出和验收标准。
 
-### v0.4 Skill 沉淀与编辑
+### v0.5 Skill 沉淀与编辑
 
 允许用户修正 skill 的角色/流程/层级归类，并把项目复盘沉淀成新的本地 skill。
 
-### v0.5 AI + 后端工作流闭环
+### v0.6 AI + 后端工作流闭环
 
 在本地 skill 图谱稳定后，再扩展方案历史、阶段推进、反馈记录和后端持久化。
 
-### v0.6 团队协作与权限
+### v0.7 团队协作与权限
 
 引入用户、团队空间、权限、云端部署和多人协作。
 
 ## 近期最高价值动作
 
-优先执行 `docs/superpowers/plans/2026-05-25-local-skill-graph.md`。`docs/superpowers/plans/2026-05-25-local-skill-graph-ai-planner.md` 和 `docs/superpowers/plans/2026-05-25-ai-backend-closed-loop.md` 保留为后续 AI/后端扩展参考。
+优先执行 `docs/superpowers/plans/2026-05-25-local-skill-graph.md`，从 project-local `./skills` root 和 `skills/oss-pr-review-response/SKILL.md` 开始验证扫描闭环。`docs/superpowers/plans/2026-05-25-local-skill-graph-ai-planner.md` 和 `docs/superpowers/plans/2026-05-25-ai-backend-closed-loop.md` 保留为后续 AI/后端扩展参考。

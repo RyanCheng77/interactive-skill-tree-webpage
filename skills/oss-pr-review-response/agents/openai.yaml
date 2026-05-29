@@ -1,0 +1,3 @@
+display_name: OSS PR Review Response
+short_description: Handles open-source GitHub PR review feedback from comments through fixes, validation, PR updates, and reviewer replies.
+default_prompt: Read the current PR review feedback, identify blockers, implement focused fixes with tests, update the PR body/screenshots if needed, push to the fork branch, and reply to reviewers with validation details.

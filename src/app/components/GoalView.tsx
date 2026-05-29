@@ -1,5 +1,6 @@
 import { ArrowUp, RefreshCw, Sparkles } from "lucide-react";
 import type { ClassifiedSkill, SkillRecommendation } from "../lib/apiClient";
+import { formatScore } from "../lib/formatScore";
 import type { GoalTemplate } from "../types";
 
 interface GoalViewProps {
@@ -99,7 +100,7 @@ export function GoalView({
                     {item.skill?.skill.name}
                   </span>
                   <span className="ml-auto rounded-full px-2 py-0.5 text-xs font-mono" style={{ background: "#0f1a15", color: "#4db885" }}>
-                    {Math.round(item.score * 100)}%
+                    {formatScore(item.score)}
                   </span>
                 </div>
                 <p className="mt-1 text-xs leading-5" style={{ color: "#a09080" }}>

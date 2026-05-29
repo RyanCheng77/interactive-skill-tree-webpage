@@ -1,0 +1,3 @@
+display_name: Multi-Agent Project Collaboration
+short_description: Coordinates parallel agent work with branch lanes, handoffs, quality gates, and project status updates.
+default_prompt: Coordinate the current multi-agent project work: inspect branch and status, define scoped lanes, update handoff/status docs, validate changes, and summarize merge readiness with risks and next steps.

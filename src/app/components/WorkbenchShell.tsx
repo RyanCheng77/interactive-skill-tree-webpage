@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Compass, Route, Users } from "lucide-react";
+import { Compass, Database, Route, Users } from "lucide-react";
 import type { EntryMode } from "../types";
 
 interface WorkbenchShellProps {
@@ -12,6 +12,7 @@ const NAV_ITEMS: Array<{ id: EntryMode; label: string; hint: string; icon: React
   { id: "goal", label: "按目标", hint: "生成方案", icon: <Compass size={16} /> },
   { id: "process", label: "按流程", hint: "阶段工作台", icon: <Route size={16} /> },
   { id: "role", label: "按角色", hint: "角色工作台", icon: <Users size={16} /> },
+  { id: "manage", label: "管理", hint: "平台资产", icon: <Database size={16} /> },
 ];
 
 export function WorkbenchShell({ activeMode, onModeChange, children }: WorkbenchShellProps) {
@@ -82,7 +83,7 @@ export function WorkbenchShell({ activeMode, onModeChange, children }: Workbench
 
           <div className="mt-6 hidden lg:block">
             <p className="px-2 text-xs font-mono leading-5" style={{ color: "#2a2a38" }}>
-              v0.2 本地 Skill 图谱
+              v0.3 跨平台 Skill 管理
             </p>
           </div>
         </aside>

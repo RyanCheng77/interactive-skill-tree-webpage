@@ -1,4 +1,4 @@
-export type EntryMode = "goal" | "process" | "role";
+export type EntryMode = "goal" | "process" | "role" | "manage";
 export type ResultMode = "none" | "generated";
 export type SkillStatus = "locked" | "available" | "unlocked";
 export type SkillUpdateType = "new" | "updated" | "review";
@@ -96,4 +96,23 @@ export interface LocalGraphState {
   warnings: string[];
 }
 
-export type { ClassifiedSkill, SkillClassification, SkillDepth, LocalSkill, SkillRecommendation } from "./lib/apiClient";
+export type {
+  ClassifiedSkill,
+  CursorRuleContext,
+  LocalSkill,
+  PlatformCompatibilityEntry,
+  PlatformCompatibilityStatus,
+  PlatformId,
+  SkillClassification,
+  SkillCompatibility,
+  SkillCompatibilityItem,
+  SkillDepth,
+  SkillInventory,
+  SkillInventoryItem,
+  SkillOccurrence,
+  SkillPlatformRoot,
+  SkillRecommendation,
+  SkillSyncPlan,
+  SyncPlanAction,
+  SyncPlanActionType,
+} from "./lib/apiClient";

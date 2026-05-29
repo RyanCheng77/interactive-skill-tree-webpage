@@ -421,7 +421,7 @@ Expected: PASS. Actual: PASS (32 tests, build OK).
 - Modify: `README.md`
 - Modify: `docs/project-overview.md`
 
-- [ ] **Step 1: Run automated checks**
+- [x] **Step 1: Run automated checks**
 
 Run:
 
@@ -431,9 +431,9 @@ pnpm test:server
 pnpm build
 ```
 
-Expected: PASS.
+Expected: PASS. Actual: PASS (10 files/39 tests frontend, 5 files/17 tests server, build OK).
 
-- [ ] **Step 2: Smoke test local APIs**
+- [x] **Step 2: Smoke test local APIs**
 
 Run:
 
@@ -443,22 +443,22 @@ curl -s http://127.0.0.1:3001/api/skills/catalog
 curl -s http://127.0.0.1:3001/api/skills/classified
 ```
 
-Expected: APIs return JSON whether local skills exist or not.
+Expected: APIs return JSON whether local skills exist or not. Actual: health/catalog/classified returned 200 with 167 skills. Recommend returned 8 recommendations for goal '我要规划 MVP 需求评审'. Note: QA used port 3002 due to port conflict on 3001.
 
-- [ ] **Step 3: Browser QA**
+- [x] **Step 3: Browser QA**
 
 Test:
 
-- Empty skill roots state.
-- Role view local skill tree.
-- Process view local skill recommendations.
-- Skill detail local path and classification reason.
-- Goal view deterministic recommendations.
-- 390x844, 768x1024, 1440x900 layouts.
+- Empty skill roots state. (verified via API fallback)
+- Role view local skill tree. (PASS — tree rendered with SkillDetail path/reason)
+- Process view local skill recommendations. (PASS — stage-grouped skills shown)
+- Skill detail local path and classification reason. (PASS)
+- Goal view deterministic recommendations. (PASS — scores 60/50, not percent)
+- 390x844, 768x1024, 1440x900 layouts. (PASS — all viewports clean)
 
-- [ ] **Step 4: Update docs**
+- [x] **Step 4: Update docs**
 
-Document local discovery, deterministic classification rules, privacy/safety, and how users can configure skill roots.
+Document local discovery, deterministic classification rules, privacy/safety, and how users can configure skill roots. Created `docs/local-skill-graph.md` and `docs/superpowers/qa/2026-05-25-local-skill-graph-qa.md`.
 
 ## Execution Options
 

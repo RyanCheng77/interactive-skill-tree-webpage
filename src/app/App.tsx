@@ -3,6 +3,7 @@ import { GoalView } from "./components/GoalView";
 import { ProcessView } from "./components/ProcessView";
 import { ResultView } from "./components/ResultView";
 import { RoleView } from "./components/RoleView";
+import { SkillManagementView } from "./components/SkillManagementView";
 import { WorkbenchShell } from "./components/WorkbenchShell";
 import { GOAL_TEMPLATES, PROCESS_STAGES, ROLES } from "./data/workbenchData";
 import { exportPlanAsJson, exportPlanAsMarkdown } from "./lib/exportPlan";
@@ -10,7 +11,20 @@ import { classifiedSkillsToRoles } from "./lib/graphTransform";
 import { createGeneratedPlan, getRecommendationBatch } from "./lib/planGeneration";
 import { computeRoleSkills, findSkillById } from "./lib/skillState";
 import { loadSnapshot, saveSnapshot } from "./lib/storage";
-import type { ClassifiedSkill, SkillRecommendation } from "./lib/apiClient";
+import {
+  applySyncPlan,
+  createSyncPlan,
+  fetchClassified,
+  fetchCompatibility,
+  fetchInventory,
+  recommendSkills,
+  type ClassifiedSkill,
+  type SkillCompatibility,
+  type SkillInventory,
+  type SkillRecommendation,
+  type SkillSyncApplyResult,
+  type SkillSyncPlan,
+} from "./lib/apiClient";
 import type { EntryMode, GeneratedPlan, GoalTemplate, LocalGraphState } from "./types";
 
 const MODE_TITLES: Record<EntryMode, { eyebrow: string; title: string; description: string }> = {
@@ -29,7 +43,14 @@ const MODE_TITLES: Record<EntryMode, { eyebrow: string; title: string; descripti
     title: "角色工作台",
     description: "选择产研角色，查看当前阶段任务、建议 skill/tool 和完整能力路径。",
   },
+  manage: {
+    eyebrow: "管理",
+    title: "跨平台 Skill 资产",
+    description: "扫描本机标准 SKILL.md，查看平台识别状态，生成预案并执行安全更新。",
+  },
 };
+
+const MANAGEMENT_LOADING_MIN_MS = 360;
 
 export default function App() {
   const [initialSnapshot] = useState(() => loadSnapshot());
@@ -46,6 +67,13 @@ export default function App() {
   const [graphState, setGraphState] = useState<LocalGraphState>({ loading: true, available: false, warnings: [] });
   const [recommendations, setRecommendations] = useState<SkillRecommendation[]>([]);
   const [recommending, setRecommending] = useState(false);
+  const [inventory, setInventory] = useState<SkillInventory | null>(null);
+  const [compatibility, setCompatibility] = useState<SkillCompatibility | null>(null);
+  const [syncPlan, setSyncPlan] = useState<SkillSyncPlan | null>(null);
+  const [syncApplyResult, setSyncApplyResult] = useState<SkillSyncApplyResult | null>(null);
+  const [managementLoading, setManagementLoading] = useState(true);
+  const [planningSync, setPlanningSync] = useState(false);
+  const [applyingSync, setApplyingSync] = useState(false);
   const content = MODE_TITLES[activeMode];
   const visibleTemplates = getRecommendationBatch(GOAL_TEMPLATES, recommendationBatch);
   const unlockedSkillIdSet = new Set(unlockedSkillIds);
@@ -53,14 +81,7 @@ export default function App() {
 
   const loadGraph = useCallback(async () => {
     try {
-      const response = await fetch("http://127.0.0.1:3001/api/skills/classified");
-
-      if (!response.ok) {
-        setGraphState({ loading: false, available: false, warnings: [] });
-        return;
-      }
-
-      const data = await response.json() as { skills: ClassifiedSkill[]; warnings: string[] };
+      const data = await fetchClassified();
       setClassifiedSkills(data.skills);
       setGraphState({ loading: false, available: true, warnings: data.warnings });
     } catch {
@@ -71,6 +92,31 @@ export default function App() {
   useEffect(() => {
     loadGraph();
   }, [loadGraph]);
+
+  const loadManagement = useCallback(async () => {
+    setManagementLoading(true);
+    setSyncPlan(null);
+    setSyncApplyResult(null);
+    try {
+      const [inventoryData, compatibilityData] = await Promise.all([
+        fetchInventory(),
+        fetchCompatibility(),
+        new Promise((resolve) => window.setTimeout(resolve, MANAGEMENT_LOADING_MIN_MS)),
+      ]);
+      setInventory(inventoryData);
+      setCompatibility(compatibilityData);
+    } catch {
+      await new Promise((resolve) => window.setTimeout(resolve, MANAGEMENT_LOADING_MIN_MS));
+      setInventory(null);
+      setCompatibility(null);
+    } finally {
+      setManagementLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadManagement();
+  }, [loadManagement]);
 
   const localRoles = useMemo(() => classifiedSkillsToRoles(classifiedSkills), [classifiedSkills]);
 
@@ -122,16 +168,8 @@ export default function App() {
     if (graphState.available) {
       setRecommending(true);
       try {
-        const response = await fetch("http://127.0.0.1:3001/api/skills/recommend", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ goal }),
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setRecommendations(data.recommendations);
-        }
+        const data = await recommendSkills(goal);
+        setRecommendations(data.recommendations);
       } catch {
         // 推荐 API 调用失败，继续使用规则生成方案
       }
@@ -177,6 +215,53 @@ export default function App() {
 
   function handleMarkSeen(skillId: string) {
     setSeenSkillIds((ids) => Array.from(new Set([...ids, skillId])));
+  }
+
+  async function handleCreateSyncPlan() {
+    setPlanningSync(true);
+    setSyncApplyResult(null);
+    try {
+      const plan = await createSyncPlan();
+      setSyncPlan(plan);
+    } catch {
+      setSyncPlan({ dryRun: true, actions: [], warnings: ["同步预案生成失败。"] });
+    } finally {
+      setPlanningSync(false);
+    }
+  }
+
+  async function handleApplySyncPlan() {
+    setApplyingSync(true);
+    try {
+      const result = await applySyncPlan();
+      const [inventoryData, compatibilityData, plan] = await Promise.all([
+        fetchInventory(),
+        fetchCompatibility(),
+        createSyncPlan(),
+      ]);
+      setSyncApplyResult(result);
+      setInventory(inventoryData);
+      setCompatibility(compatibilityData);
+      setSyncPlan(plan);
+    } catch {
+      setSyncApplyResult({
+        dryRun: false,
+        created: [],
+        skipped: [],
+        errors: [
+          {
+            type: "manual-review-conflict",
+            skillId: "sync-apply",
+            skillName: "安全更新",
+            platformId: "agents-shared",
+            reason: "安全更新执行失败。",
+          },
+        ],
+        warnings: [],
+      });
+    } finally {
+      setApplyingSync(false);
+    }
   }
 
   function renderPlaceholder() {
@@ -272,6 +357,19 @@ export default function App() {
           onUnlockSkill={handleUnlockSkill}
           onMarkSeen={handleMarkSeen}
           graphAvailable={graphState.available}
+        />
+      ) : activeMode === "manage" ? (
+        <SkillManagementView
+          inventory={inventory}
+          compatibility={compatibility}
+          syncPlan={syncPlan}
+          syncApplyResult={syncApplyResult}
+          loading={managementLoading}
+          planning={planningSync}
+          applying={applyingSync}
+          onRefresh={loadManagement}
+          onCreateSyncPlan={handleCreateSyncPlan}
+          onApplySyncPlan={handleApplySyncPlan}
         />
       ) : renderPlaceholder()}
     </WorkbenchShell>

@@ -50,6 +50,12 @@ describe("parseSnapshot", () => {
     });
   });
 
+  it("accepts the management workbench mode", () => {
+    expect(parseSnapshot(JSON.stringify({ entryMode: "manage" }))).toMatchObject({
+      entryMode: "manage",
+    });
+  });
+
   it("falls back from invalid enum and generated plan values", () => {
     expect(parseSnapshot(JSON.stringify({ entryMode: "bad", generatedPlan: {} }))).toMatchObject({
       entryMode: "goal",

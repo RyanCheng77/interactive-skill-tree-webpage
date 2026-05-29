@@ -23,7 +23,7 @@ function copySnapshot(snapshot: AppStateSnapshot): AppStateSnapshot {
 }
 
 function isEntryMode(value: unknown): value is AppStateSnapshot["entryMode"] {
-  return value === "goal" || value === "process" || value === "role";
+  return value === "goal" || value === "process" || value === "role" || value === "manage";
 }
 
 function hasGeneratedPlanShape(value: unknown): value is AppStateSnapshot["generatedPlan"] {
